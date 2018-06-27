@@ -4,6 +4,8 @@ let snares = [];
 let hiHats = [];
 let rideCymbals = [];
 const arraySize = 16;
+// let memes = new Array(16).fill(false);
+// console.log(memes);
 
 for (let i = 0; i < arraySize; i++) {
     kicks.push(false);
@@ -13,7 +15,7 @@ for (let i = 0; i < arraySize; i++) {
 }
 
 const toggleDrum = (arrayName, index) => {
-    if (arrayName === 'kicks' || 'snares' || 'hiHats' || 'rideCymbals') {
+    if ((arrayName === 'kicks' || 'snares' || 'hiHats' || 'rideCymbals') && (index < 16 && index >= 0)) {
         if (arrayName === 'kicks') {
             kicks[index] = !kicks[index];
         } 
