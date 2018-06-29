@@ -263,15 +263,156 @@ function downvote(item, username) {
   return item;
 }
 
-function createComment(url, request) {}
+// Create function to create a new comment
+// @route POST /comments
+// Unsure why url is needed as parameter. However, function would not pass test cases without it being a parameter so have kept it in. Could possibly be issues with test cases?
+function createComment(url, request) {
+  // Initialise comment value by first checking request.body property exists and then assigning request.body.comment as value
+  // Initialise response object
+  const requestComment = request.body && request.body.comment;
+  const response = {};
 
-function updateComment(url, request) {}
+  // Check if requested comment exists &&
+  // body property exists in requested comment &&
+  // username property exists in requested comment &&
+  // username exists in database.users object &&
+  // articleId property exists in requested comment &&
+  // article corresponding to comments articleId exists in databases.articles object
+  if (
+    requestComment &&
+    requestComment.body &&
+    requestComment.username &&
+    database.users[requestComment.username] &&
+    requestComment.articleId &&
+    database.articles[requestComment.articleId]
+  ) {
+    // Test to check if statement entered
+    // console.log("conditions met!");
+    // Create comment with all specified properties provided
+    const comment = {
+      id: database.nextCommentId++,
+      body: requestComment.body,
+      username: requestComment.username,
+      articleId: requestComment.articleId,
+      upvotedBy: [],
+      downvotedBy: []
+    };
 
-function deleteComment(url, request) {}
+    // Assign created comment to database and push comments id value to commentId array in users and articles object within database
+    database.comments[comment.id] = comment;
+    database.users[comment.username].commentIds.push(comment.id);
+    database.articles[requestComment.articleId].commentIds.push(comment.id);
 
-function upvoteComment(url, request) {}
+    // Return created comment in response body
+    // Return successful POST status code
+    response.body = { comment: comment };
+    response.status = 201;
+  } else {
+    // Test to check else statement entered
+    // console.log("conditions not met!");
+    // Returns unsuccessful POST status code
+    response.status = 400;
+  }
 
-function downvoteComment(url, request) {}
+  return response;
+}
+
+// Create function to update an existing comment based on comment ID
+// @route PUT /comments/:id
+function updateComment(url, request) {
+  // How does the filter work here when extracting ID from URL?
+  const id = Number(url.split("/").filter(segment => segment)[1]);
+
+  // Initialise savedComment and store comment from database.comments objects with corresponding ID extracted from URL
+  // Initialise comment value by first checking request.body property exists and then assigning request.body.comment as value
+  // Initialise response object
+  const savedComment = database.comments[id];
+  const requestComment = request.body && request.body.comment;
+  const response = {};
+
+  // Check if id or requestComment don't exist
+  // else if check if comment exists at ID extracted from URL earlier
+  // else update comments existing body property at provided ID with new comment held in body property of requestComment. If value in new body property is invalid maintain old comment.
+  if (!id || !requestComment) {
+    response.status = 400; // Return bad request error code
+  } else if (!savedComment) {
+    response.status = 404; // Return not found error code
+  } else {
+    savedComment.body = requestComment.body || savedComment.body;
+
+    // Return updated comment in response body
+    // Return successful respones OK status code
+    response.body = { comment: savedComment };
+    response.status = 200;
+  }
+
+  return response;
+}
+
+// Create function to delete an existing comment based on comment ID
+// @route DELETE /comments/:id
+function deleteComment(url, request) {
+  const id = Number(url.split("/").filter(segment => segment)[1]);
+  const savedComment = database.comments[id];
+  const response = {};
+
+  if (id && savedComment) {
+    database.comments[id] = null;
+    savedComment.commentIds.forEach(commentId => {
+      const comment = database.comments[commentId];
+      database.comments[commentId] = null;
+      const userCommentIds = database.users[comment.username].commentIds;
+      userCommentIds.splice(userCommentIds.indexOf(id), 1);
+    });
+    const userArticleIds = database.users[savedArticle.username].articleIds;
+    userArticleIds.splice(userArticleIds.indexOf(id), 1);
+    response.status = 204;
+  } else {
+    response.status = 404;
+  }
+
+  return response;
+}
+
+// Create function to update upvotes of comment based on comment ID
+// @route PUT /comments/:id/upvote
+function upvoteComment(url, request) {
+  const id = Number(url.split("/").filter(segment => segment)[1]);
+  const username = request.body && request.body.username;
+  let savedArticle = database.articles[id];
+  const response = {};
+
+  if (savedArticle && database.users[username]) {
+    savedArticle = upvote(savedArticle, username);
+
+    response.body = { article: savedArticle };
+    response.status = 200;
+  } else {
+    response.status = 400;
+  }
+
+  return response;
+}
+
+// Create function to update downvotes of comment based on comment ID
+// @route PUT /comments/:id/downvote
+function downvoteComment(url, request) {
+  const id = Number(url.split("/").filter(segment => segment)[1]);
+  const username = request.body && request.body.username;
+  let savedArticle = database.articles[id];
+  const response = {};
+
+  if (savedArticle && database.users[username]) {
+    savedArticle = downvote(savedArticle, username);
+
+    response.body = { article: savedArticle };
+    response.status = 200;
+  } else {
+    response.status = 400;
+  }
+
+  return response;
+}
 
 // Write all code above this line.
 
