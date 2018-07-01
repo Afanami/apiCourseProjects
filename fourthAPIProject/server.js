@@ -267,7 +267,7 @@ function downvote(item, username) {
 // @route POST /comments
 // Unsure why url is needed as parameter. However, function would not pass test cases without it being a parameter so have kept it in. Could possibly be issues with test cases?
 function createComment(url, request) {
-  // Initialise comment value by first checking request.body property exists and then assigning request.body.comment as value
+  // Initialise comment value by first checking body property exists in request and then assigning value stored in request.body.comment as value
   // Initialise response object
   const requestComment = request.body && request.body.comment;
   const response = {};
@@ -304,8 +304,8 @@ function createComment(url, request) {
     database.articles[requestComment.articleId].commentIds.push(comment.id);
 
     // Return created comment in response body
-    // Return successful POST status code
     response.body = { comment: comment };
+    // Return successful POST status code
     response.status = 201;
   } else {
     // Test to check else statement entered
@@ -334,40 +334,49 @@ function updateComment(url, request) {
   // else if check if comment exists at ID extracted from URL earlier
   // else update comments existing body property at provided ID with new comment held in body property of requestComment. If value in new body property is invalid maintain old comment.
   if (!id || !requestComment) {
-    response.status = 400; // Return bad request error code
+    // Return bad request error code
+    response.status = 400;
   } else if (!savedComment) {
-    response.status = 404; // Return not found error code
+    // Return not found error code
+    response.status = 404;
   } else {
     savedComment.body = requestComment.body || savedComment.body;
 
     // Return updated comment in response body
-    // Return successful respones OK status code
     response.body = { comment: savedComment };
+    // Return successful respones OK status code
     response.status = 200;
   }
 
   return response;
 }
 
+// CONTINUE FROM HERE
 // Create function to delete an existing comment based on comment ID
 // @route DELETE /comments/:id
 function deleteComment(url, request) {
+  // Initialise id by extracting from URL
+  // Initialise savedComment (comment to delete)
+  // Initialise response object
   const id = Number(url.split("/").filter(segment => segment)[1]);
   const savedComment = database.comments[id];
   const response = {};
 
-  if (id && savedComment) {
+  if (/*id >= 0 &&*/ savedComment) {
+    // Initialise variables to store array of comment IDs using ID for key corresponding to article and username for key corresponding to author, respectively.
+    const articleCommentIds =
+      database.articles[savedComment.articleId].commentIds;
+    const userCommentIds = database.users[savedComment.username].commentIds;
+    // Delete from database
     database.comments[id] = null;
-    savedComment.commentIds.forEach(commentId => {
-      const comment = database.comments[commentId];
-      database.comments[commentId] = null;
-      const userCommentIds = database.users[comment.username].commentIds;
-      userCommentIds.splice(userCommentIds.indexOf(id), 1);
-    });
-    const userArticleIds = database.users[savedArticle.username].articleIds;
-    userArticleIds.splice(userArticleIds.indexOf(id), 1);
+    // Remove from article's comment IDs array
+    articleCommentIds.splice(articleCommentIds.indexOf(id), 1);
+    // Remove from author's comment IDs array
+    userCommentIds.splice(userCommentIds.indexOf(id), 1);
+    // Return DELETE Successful response code
     response.status = 204;
   } else {
+    // Return error not found response code if savedComment not defined.
     response.status = 404;
   }
 
@@ -377,17 +386,27 @@ function deleteComment(url, request) {
 // Create function to update upvotes of comment based on comment ID
 // @route PUT /comments/:id/upvote
 function upvoteComment(url, request) {
+  // Initialise ID by extracting from URL
+  // Initialise username value by first checking body property exists in request and then assigning value stored in request.body.username as value
+  // Save corresponding comment from database at retrieved ID
+  // Initialise response object
   const id = Number(url.split("/").filter(segment => segment)[1]);
   const username = request.body && request.body.username;
-  let savedArticle = database.articles[id];
+  let savedComment = database.comments[id];
   const response = {};
 
-  if (savedArticle && database.users[username]) {
-    savedArticle = upvote(savedArticle, username);
+  // Checks if comment exists in database at saved ID (this is also a check for valid ID) &&
+  // Checks if username exists in database of users
+  if (savedComment && database.users[username]) {
+    // Call existing upvote function passing correct parameters, comment to upvote and username of upvoter. This is so a user can't upvote multiple times
+    savedComment = upvote(savedComment, username);
 
-    response.body = { article: savedArticle };
+    // Return updated comment in response body
+    response.body = { comment: savedComment };
+    // Return successful respones OK status code
     response.status = 200;
   } else {
+    // Return bad request error code
     response.status = 400;
   }
 
@@ -397,17 +416,25 @@ function upvoteComment(url, request) {
 // Create function to update downvotes of comment based on comment ID
 // @route PUT /comments/:id/downvote
 function downvoteComment(url, request) {
+  // Initialise ID by extracting from URL
+  // Initialise username value by first checking body property exists in request and then assigning value stored in request.body.username as value
+  // Save corresponding comment from database at retrieved ID
+  // Initialise response object
   const id = Number(url.split("/").filter(segment => segment)[1]);
   const username = request.body && request.body.username;
-  let savedArticle = database.articles[id];
+  let savedComment = database.comments[id];
   const response = {};
 
-  if (savedArticle && database.users[username]) {
-    savedArticle = downvote(savedArticle, username);
+  if (savedComment && database.users[username]) {
+    // Call existing downvote function passing correct parameters, comment to downvote and username of downvoter. This is so a user can't downvote multiple times
+    savedComment = downvote(savedComment, username);
 
-    response.body = { article: savedArticle };
+    // Return updated comment in response body
+    response.body = { comment: savedComment };
+    // Return successful respones OK status code
     response.status = 200;
   } else {
+    // Return bad request error code
     response.status = 400;
   }
 
