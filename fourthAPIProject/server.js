@@ -10,23 +10,23 @@
 const yaml = require("yaml-js");
 const fs = require("fs");
 
+// Load database on server start
 function loadDatabase() {
   fs.readFile("database.yaml", function(err, buf) {
+    // Read yaml file and store it in database
     let readFile = buf.toString();
     database = yaml.load(readFile);
     console.log(database);
   });
 }
 
-function saveDatabase() {
-  fs.writeFile("database.yaml", yaml.dump(database), function(err, data) {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log("Database updated and saved!");
-    }
-  });
-}
+// Save database on updates
+// function saveDatabase() {
+//   fs.writeFile("database.yaml", yaml.dump(database), function(err, data) {
+//     if (err) console.log(err);
+//     console.log("Database updated and saved!");
+//   });
+// }
 
 const routes = {
   "/users": {
