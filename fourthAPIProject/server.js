@@ -1,11 +1,32 @@
 // database is let instead of const to allow us to modify it in test.js
-let database = {
-  users: {},
-  articles: {},
-  nextArticleId: 1,
-  comments: {},
-  nextCommentId: 1
-};
+// let database = {
+//   users: {},
+//   articles: {},
+//   nextArticleId: 1,
+//   comments: {},
+//   nextCommentId: 1
+// };
+
+const yaml = require("yaml-js");
+const fs = require("fs");
+
+function loadDatabase() {
+  fs.readFile("database.yaml", function(err, buf) {
+    let readFile = buf.toString();
+    database = yaml.load(readFile);
+    console.log(database);
+  });
+}
+
+function saveDatabase() {
+  fs.writeFile("database.yaml", yaml.dump(database), function(err, data) {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log("Database updated and saved!");
+    }
+  });
+}
 
 const routes = {
   "/users": {
@@ -320,9 +341,10 @@ function createComment(url, request) {
 // Create function to update an existing comment based on comment ID
 // @route PUT /comments/:id
 function updateComment(url, request) {
-  // How does the filter work here when extracting ID from URL?
+  // Split URL at "/"
+  // Filter empty item at index 0 due to leading "/"
+  // Return ID at index 1 (['comment', ':id']) and store in id variable
   const id = Number(url.split("/").filter(segment => segment)[1]);
-
   // Initialise savedComment and store comment from database.comments objects with corresponding ID extracted from URL
   // Initialise comment value by first checking request.body property exists and then assigning request.body.comment as value
   // Initialise response object
@@ -351,14 +373,15 @@ function updateComment(url, request) {
   return response;
 }
 
-// CONTINUE FROM HERE
 // Create function to delete an existing comment based on comment ID
 // @route DELETE /comments/:id
 function deleteComment(url, request) {
-  // Initialise id by extracting from URL
+  // Split URL at "/"
+  // Filter empty item at index 0 due to leading "/"
+  // Return ID at index 1 (['comment', ':id']) and store in id variable
+  const id = Number(url.split("/").filter(segment => segment)[1]);
   // Initialise savedComment (comment to delete)
   // Initialise response object
-  const id = Number(url.split("/").filter(segment => segment)[1]);
   const savedComment = database.comments[id];
   const response = {};
 
@@ -386,11 +409,13 @@ function deleteComment(url, request) {
 // Create function to update upvotes of comment based on comment ID
 // @route PUT /comments/:id/upvote
 function upvoteComment(url, request) {
-  // Initialise ID by extracting from URL
-  // Initialise username value by first checking body property exists in request and then assigning value stored in request.body.username as value
+  // Split URL at "/"
+  // Filter empty item at index 0 due to leading "/"
+  // Return ID at index 1 (['comment', ':id']) and store in id variable
+  const id = Number(url.split("/").filter(segment => segment)[1]);
+  // Initialise username value by first checking body property exists in request and then assigning value stored in request.body.usernamel as value
   // Save corresponding comment from database at retrieved ID
   // Initialise response object
-  const id = Number(url.split("/").filter(segment => segment)[1]);
   const username = request.body && request.body.username;
   let savedComment = database.comments[id];
   const response = {};
@@ -416,11 +441,13 @@ function upvoteComment(url, request) {
 // Create function to update downvotes of comment based on comment ID
 // @route PUT /comments/:id/downvote
 function downvoteComment(url, request) {
-  // Initialise ID by extracting from URL
+  // Split URL at "/"
+  // Filter empty item at index 0 due to leading "/"
+  // Return ID at index 1 (['comment', ':id']) and store in id variable
+  const id = Number(url.split("/").filter(segment => segment)[1]);
   // Initialise username value by first checking body property exists in request and then assigning value stored in request.body.username as value
   // Save corresponding comment from database at retrieved ID
   // Initialise response object
-  const id = Number(url.split("/").filter(segment => segment)[1]);
   const username = request.body && request.body.username;
   let savedComment = database.comments[id];
   const response = {};

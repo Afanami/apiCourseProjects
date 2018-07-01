@@ -1,1 +1,3 @@
 node_modules/
+database.yaml
+package-lock.json
