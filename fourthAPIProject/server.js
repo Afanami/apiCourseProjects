@@ -20,14 +20,14 @@ function loadDatabase() {
   });
 }
 
-// // Save database on updates
-// function saveDatabase() {
-//   // Write to yaml file on call
-//   fs.writeFile("database.yaml", yaml.dump(database), function(err, data) {
-//     if (err) console.log(err);
-//     console.log("Database updated and saved!");
-//   });
-// }
+// Save database on updates
+function saveDatabase() {
+  // Write to yaml file on call
+  fs.writeFile("database.yaml", yaml.dump(database), function(err, data) {
+    if (err) console.log(err);
+    console.log("Database updated and saved!");
+  });
+}
 
 const routes = {
   "/users": {
