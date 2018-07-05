@@ -1,11 +1,11 @@
 // database is let instead of const to allow us to modify it in test.js
-// let database = {
-//   users: {},
-//   articles: {},
-//   nextArticleId: 1,
-//   comments: {},
-//   nextCommentId: 1
-// };
+let database = {
+  users: {},
+  articles: {},
+  nextArticleId: 1,
+  comments: {},
+  nextCommentId: 1
+};
 // let database = {};
 
 const fs = require("fs");
@@ -14,21 +14,23 @@ const yaml = require("yaml-js");
 // Load database on server start
 function loadDatabase() {
   fs.readFile("database.yaml", function(err, buf) {
+    if (err) return database;
     // Read yaml file and store it in database
     let readFile = buf.toString();
     database = yaml.load(readFile);
     console.log(database);
+    return database;
   });
 }
 
-// // Save database on updates
-// function saveDatabase() {
-//   // Write to yaml file on call
-//   fs.writeFile("database.yaml", yaml.dump(database), function(err, database) {
-//     if (err) console.log(err);
-//     console.log("Database updated and saved!");
-//   });
-// }
+// Save database on updates
+function saveDatabase() {
+  // Write to yaml file on call
+  fs.writeFile("database.yaml", yaml.dump(database), function(err, database) {
+    if (err) console.log(err);
+    console.log("Database updated and saved!");
+  });
+}
 
 const routes = {
   "/users": {
