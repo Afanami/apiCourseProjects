@@ -326,7 +326,7 @@ function createComment(url, request) {
     // Assign created comment to database and push comments id value to commentId array in users and articles object within database
     database.comments[comment.id] = comment;
     database.users[comment.username].commentIds.push(comment.id);
-    database.articles[requestComment.articleId].commentIds.push(comment.id);
+    database.articles[comment.articleId].commentIds.push(comment.id);
 
     // Return created comment in response body
     response.body = { comment: comment };
