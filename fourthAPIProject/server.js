@@ -6,9 +6,10 @@
 //   comments: {},
 //   nextCommentId: 1
 // };
+// let database = {};
 
-const yaml = require("yaml-js");
 const fs = require("fs");
+const yaml = require("yaml-js");
 
 // Load database on server start
 function loadDatabase() {
@@ -20,14 +21,14 @@ function loadDatabase() {
   });
 }
 
-// Save database on updates
-function saveDatabase() {
-  // Write to yaml file on call
-  fs.writeFile("database.yaml", yaml.dump(database), function(err, data) {
-    if (err) console.log(err);
-    console.log("Database updated and saved!");
-  });
-}
+// // Save database on updates
+// function saveDatabase() {
+//   // Write to yaml file on call
+//   fs.writeFile("database.yaml", yaml.dump(database), function(err, database) {
+//     if (err) console.log(err);
+//     console.log("Database updated and saved!");
+//   });
+// }
 
 const routes = {
   "/users": {
