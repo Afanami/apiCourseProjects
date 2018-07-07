@@ -1,5 +1,21 @@
-users: {}
-articles: {}
-nextArticleId: 1
+users:
+  afan:
+    username: afan
+    articleIds: [1]
+    commentIds: []
+  afanami:
+    username: afanami
+    articleIds: []
+    commentIds: []
+articles:
+  '1':
+    id: 1
+    title: afanami
+    url: www.google.com
+    username: afan
+    commentIds: []
+    upvotedBy: []
+    downvotedBy: []
+nextArticleId: 2
 comments: {}
 nextCommentId: 1
