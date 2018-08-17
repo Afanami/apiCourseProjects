@@ -1,4 +1,5 @@
 const db = require("./db.js");
+const checkMillionDollarIdea = require("./checkMillionDollarIdea.js");
 const express = require("express");
 const apiRouter = express.Router();
 
@@ -12,18 +13,17 @@ const apiRouter = express.Router();
 // Check if minion exists and return an array of all minions
 apiRouter.get("/minions", (req, res, next) => {
   const minions = db.getAllFromDatabase("minions");
-  minions !== null ? res.status(200).send(minions) : res.status(404);
-  next();
+  minions !== null ? res.status(200).send(minions) : res.sendStatus(404);
 });
 
 // Create a new minion and save it to the database
 apiRouter.post("/minions", (req, res, next) => {
-  // console.log(req);
-  // let minions = db.getAllFromDatabase("minions");
-  // db.addToDatabase("minions", minions) !== null
-  //   ? res.status(201).send(db.addToDatabase("minions", minions))
-  //   : res.status(404);
-  next();
+  const minionArray = db.getAllFromDatabase("minions");
+
+  req.body.id = minionArray.length;
+
+  const newMinion = db.addToDatabase("minions", req.body);
+  newMinion !== null ? res.status(201).send(newMinion) : res.sendStatus(404);
 });
 
 /* ============================= */
@@ -35,30 +35,22 @@ apiRouter.get("/minions/:minionId", (req, res, next) => {
   const minionId = req.params.minionId;
   const minionAtId = db.getFromDatabaseById("minions", minionId);
   isNaN(Number(minionId)) || minionAtId === null || !minionAtId
-    ? res.status(404)
+    ? res.sendStatus(404)
     : res.status(200).send(minionAtId);
-  next();
 });
 
 // Update a single minion by id
 apiRouter.put("/minions/:minionId", (req, res, next) => {
   const minionToUpdate = req.params.minionId;
-  console.log(`minion to update id: ${minionToUpdate}`);
-  if (
-    isNaN(Number(minionToUpdate)) ||
-    minionToUpdate === null ||
-    !minionToUpdate
-  ) {
-    res.status(404);
+  const minionExists = db.getFromDatabaseById("minions", minionToUpdate);
+  if (isNaN(Number(minionToUpdate)) || minionExists === null || !minionExists) {
+    res.sendStatus(404);
   } else {
-    const updateMinionDB = db.updateInstanceInDatabase(
-      "minions",
-      minionToUpdate
-    );
-    res.status(200).send(updateMinionDB);
+    db.updateInstanceInDatabase("minions", req.body);
+    const getUpdatedMinion = db.getFromDatabaseById("minions", minionToUpdate);
+    req.body = getUpdatedMinion;
+    res.status(200).send(req.body);
   }
-
-  next();
 });
 
 // Delete a single minion by id
@@ -66,9 +58,8 @@ apiRouter.delete("/minions/:minionId", (req, res, next) => {
   const minionId = req.params.minionId;
   const deletedMinion = db.deleteFromDatabasebyId("minions", minionId);
   isNaN(Number(minionId)) || deletedMinion === null || !deletedMinion
-    ? res.status(404)
+    ? res.sendStatus(404)
     : res.status(204).send(deletedMinion);
-  next();
 });
 
 /* ========== */
@@ -78,21 +69,70 @@ apiRouter.delete("/minions/:minionId", (req, res, next) => {
 // /* @ROUTE /api/minions/:minionId/work */
 // /* ================================== */
 
-// // Get an array of all work for specified minion
-// apiRouter.get("/minions/:minionId/work", (req, res, next) => {});
+// Get an array of all work for specified minion
+apiRouter.get("/minions/:minionId/work", (req, res, next) => {
+  const minionId = req.params.minionId;
+  const minionExists = db.getFromDatabaseById("minions", minionId);
+  let work = db.getAllFromDatabase("work");
+  let workById = [];
+  work.filter(work => {
+    if (work.id === minionId) {
+      workById.push(work);
+    }
+  });
+  isNaN(Number(minionId)) || workById === null || !minionExists
+    ? res.sendStatus(404)
+    : res.status(200).send(workById);
+});
 
-// // Create a new work object and save it to the database
-// apiRouter.post("/minions/:minionId/work", (req, res, next) => {});
+// Create a new work object and save it to the database
+apiRouter.post("/minions/:minionId/work", (req, res, next) => {
+  const workArray = db.getAllFromDatabase("work");
+
+  req.body.id = workArray.length;
+
+  const newWork = db.addToDatabase("work", req.body);
+  newWork !== null ? res.status(201).send(newWork) : res.sendStatus(404);
+});
 
 // /* ========================================== */
 // /* @ROUTE /api/minions/:minionId/work/:workId */
 // /* ========================================== */
 
-// // Update a single work by id
-// apiRouter.put("/minions/:minionId/work/:workId", (req, res, next) => {});
+// Update a single work by id
+apiRouter.put("/minions/:minionId/work/:workId", (req, res, next) => {
+  const workToUpdate = req.params.workId;
+  const minionId = req.params.minionId;
+  const workExists = db.getFromDatabaseById("work", workToUpdate);
+  const minionExists = db.getFromDatabaseById("minions", minionId);
 
-// // Delete a single work by id
-// apiRouter.delete("/minions/:minionId/work/:workId", (req, res, next) => {});
+  console.log(`This is minionId: ${minionId} this is workId: ${workToUpdate}`);
+  if (workToUpdate !== minionId) {
+    res.sendStatus(400);
+  } else if (
+    isNaN(Number(workToUpdate)) ||
+    workExists === null ||
+    !workExists ||
+    minionExists === null ||
+    !minionExists
+  ) {
+    res.sendStatus(404);
+  } else {
+    db.updateInstanceInDatabase("work", req.body);
+    const getUpdatedWork = db.getFromDatabaseById("work", workToUpdate);
+    req.body = getUpdatedWork;
+    res.status(200).send(req.body);
+  }
+});
+
+// Delete a single work by id
+apiRouter.delete("/minions/:minionId/work/:workId", (req, res, next) => {
+  const workId = req.params.workId;
+  const workExists = db.getFromDatabaseById("work", workId);
+  const deleteWork = db.deleteFromDatabasebyId("work", workId);
+
+  workExists ? res.status(204).send(deleteWork) : res.sendStatus(404);
+});
 /* ========== */
 /* BONUS MEME */
 /* ========== */
@@ -104,13 +144,17 @@ apiRouter.delete("/minions/:minionId", (req, res, next) => {
 // Get an array of all ideas
 apiRouter.get("/ideas", (req, res, next) => {
   const ideas = db.getAllFromDatabase("ideas");
-  ideas !== null ? res.status(200).send(ideas) : res.status(404);
-  next();
+  ideas !== null ? res.status(200).send(ideas) : res.sendStatus(404);
 });
 
 // Create a new idea and save it to the database
-apiRouter.post("/ideas", (req, res, next) => {
-  next();
+apiRouter.post("/ideas", checkMillionDollarIdea, (req, res, next) => {
+  const ideasArray = db.getAllFromDatabase("ideas");
+
+  req.body.id = ideasArray.length;
+
+  const newIdea = db.addToDatabase("ideas", req.body);
+  newIdea !== null ? res.status(201).send(newIdea) : res.sendStatus(404);
 });
 
 /* ========================= */
@@ -120,16 +164,24 @@ apiRouter.post("/ideas", (req, res, next) => {
 // Get a single idea by id
 apiRouter.get("/ideas/:ideaId", (req, res, next) => {
   const ideaId = req.params.ideaId;
-  const ideaAtId = db.getFromDatabaseById("ideas", ideaId);
-  isNaN(Number(ideaId)) || ideaAtId === null || !ideaAtId
-    ? res.status(404)
-    : res.status(200).send(ideaAtId);
-  next();
+  const ideaExists = db.getFromDatabaseById("ideas", ideaId);
+  isNaN(Number(ideaId)) || ideaExists === null || !ideaExists
+    ? res.sendStatus(404)
+    : res.status(200).send(ideaExists);
 });
 
 // Update a single idea by id
-apiRouter.put("/ideas/:ideaId", (req, res, next) => {
-  next();
+apiRouter.put("/ideas/:ideaId", checkMillionDollarIdea, (req, res, next) => {
+  const ideaId = req.params.ideaId;
+  const ideaExists = db.getFromDatabaseById("ideas", ideaId);
+  if (isNaN(Number(ideaId)) || ideaExists === null || !ideaExists) {
+    res.sendStatus(404);
+  } else {
+    db.updateInstanceInDatabase("ideas", req.body);
+    const getUpdatedIdea = db.getFromDatabaseById("ideas", ideaId);
+    req.body = getUpdatedIdea;
+    res.status(200).send(req.body);
+  }
 });
 
 // Delete a single idea by id
@@ -137,9 +189,8 @@ apiRouter.delete("/ideas/:ideaId", (req, res, next) => {
   const ideaId = req.params.ideaId;
   const deletedIdea = db.deleteFromDatabasebyId("ideas", ideaId);
   isNaN(Number(ideaId)) || deletedIdea === null || !deletedIdea
-    ? res.status(404)
+    ? res.sendStatus(404)
     : res.status(204).send(deletedIdea);
-  next();
 });
 
 /* ==================== */
@@ -149,8 +200,7 @@ apiRouter.delete("/ideas/:ideaId", (req, res, next) => {
 // Get an array of all meetings
 apiRouter.get("/meetings", (req, res, next) => {
   const meetings = db.getAllFromDatabase("meetings");
-  meetings !== null ? res.status(200).send(meetings) : res.status(404);
-  next();
+  meetings !== null ? res.status(200).send(meetings) : res.sendStatus(404);
 });
 
 // PRETEXT UWU
@@ -160,8 +210,7 @@ automatically by the server upon request. Use the provided createMeeting functio
 apiRouter.post("/meetings", (req, res, next) => {
   const newMeeting = db.createMeeting();
   const addMeeting = db.addToDatabase("meetings", newMeeting);
-  addMeeting ? res.status(201).send(addMeeting) : res.status(404);
-  next();
+  addMeeting ? res.status(201).send(addMeeting) : res.sendStatus(404);
 });
 
 // Create a new meeting and save it to the database
