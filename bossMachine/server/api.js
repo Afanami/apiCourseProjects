@@ -42,7 +42,22 @@ apiRouter.get("/minions/:minionId", (req, res, next) => {
 
 // Update a single minion by id
 apiRouter.put("/minions/:minionId", (req, res, next) => {
-  console.log(req);
+  const minionToUpdate = req.params.minionId;
+  console.log(`minion to update id: ${minionToUpdate}`);
+  if (
+    isNaN(Number(minionToUpdate)) ||
+    minionToUpdate === null ||
+    !minionToUpdate
+  ) {
+    res.status(404);
+  } else {
+    const updateMinionDB = db.updateInstanceInDatabase(
+      "minions",
+      minionToUpdate
+    );
+    res.status(200).send(updateMinionDB);
+  }
+
   next();
 });
 
