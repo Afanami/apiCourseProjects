@@ -3,6 +3,8 @@ const checkMillionDollarIdea = require("./checkMillionDollarIdea.js");
 const express = require("express");
 const apiRouter = express.Router();
 
+let workId = 0;
+
 // PRETEXT UWU
 /* For all /api/minions and /api/ideas routes, any POST or PUT requests will send their new/updated resources in the request body. POST request bodies will not have an id property, you will have to set it based on the next id in sequence. */
 
@@ -18,10 +20,6 @@ apiRouter.get("/minions", (req, res, next) => {
 
 // Create a new minion and save it to the database
 apiRouter.post("/minions", (req, res, next) => {
-  const minionArray = db.getAllFromDatabase("minions");
-
-  req.body.id = minionArray.length;
-
   const newMinion = db.addToDatabase("minions", req.body);
   newMinion !== null ? res.status(201).send(newMinion) : res.sendStatus(404);
 });
@@ -75,11 +73,12 @@ apiRouter.get("/minions/:minionId/work", (req, res, next) => {
   const minionExists = db.getFromDatabaseById("minions", minionId);
   let work = db.getAllFromDatabase("work");
   let workById = [];
-  work.filter(work => {
-    if (work.id === minionId) {
+  work.map(work => {
+    if (work.minionId === minionId) {
       workById.push(work);
     }
   });
+
   isNaN(Number(minionId)) || workById === null || !minionExists
     ? res.sendStatus(404)
     : res.status(200).send(workById);
@@ -87,12 +86,10 @@ apiRouter.get("/minions/:minionId/work", (req, res, next) => {
 
 // Create a new work object and save it to the database
 apiRouter.post("/minions/:minionId/work", (req, res, next) => {
-  const workArray = db.getAllFromDatabase("work");
-
-  req.body.id = workArray.length;
-
-  const newWork = db.addToDatabase("work", req.body);
-  newWork !== null ? res.status(201).send(newWork) : res.sendStatus(404);
+  const newWork = req.body;
+  newWork.minionId = req.params.minionId;
+  const workExists = db.addToDatabase("work", newWork);
+  workExists !== null ? res.status(201).send(req.body) : res.sendStatus(404);
 });
 
 // /* ========================================== */
@@ -101,25 +98,29 @@ apiRouter.post("/minions/:minionId/work", (req, res, next) => {
 
 // Update a single work by id
 apiRouter.put("/minions/:minionId/work/:workId", (req, res, next) => {
-  const workToUpdate = req.params.workId;
+  const workId = req.params.workId;
   const minionId = req.params.minionId;
-  const workExists = db.getFromDatabaseById("work", workToUpdate);
+  const workExists = db.getFromDatabaseById("work", workId);
   const minionExists = db.getFromDatabaseById("minions", minionId);
 
-  console.log(`This is minionId: ${minionId} this is workId: ${workToUpdate}`);
-  if (workToUpdate !== minionId) {
-    res.sendStatus(400);
-  } else if (
-    isNaN(Number(workToUpdate)) ||
+  if (
+    isNaN(Number(workId)) ||
     workExists === null ||
     !workExists ||
     minionExists === null ||
     !minionExists
   ) {
     res.sendStatus(404);
+  } else if (workExists.minionId !== minionId) {
+    console.log(
+      `else if work exists minion id: ${
+        workExists.minionId
+      } minion id: ${minionId}`
+    );
+    res.sendStatus(400);
   } else {
     db.updateInstanceInDatabase("work", req.body);
-    const getUpdatedWork = db.getFromDatabaseById("work", workToUpdate);
+    const getUpdatedWork = db.getFromDatabaseById("work", workId);
     req.body = getUpdatedWork;
     res.status(200).send(req.body);
   }
