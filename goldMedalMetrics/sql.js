@@ -1,12 +1,16 @@
-var sqlite3 = require('sqlite3');
-var db = new sqlite3.Database('./gold_medals.sqlite');
+var sqlite3 = require("sqlite3");
+var db = new sqlite3.Database("./gold_medals.sqlite");
 
 /*
 Returns a SQL query string that will create the Country table with four columns: name (required), code (required), gdp, and population.
 */
 
 const createCountryTable = () => {
-  return;
+  return `CREATE TABLE Country (
+    name TEXT NOT NULL,
+    code TEXT NOT NULL,
+    gdp INTEGER,
+    population INTEGER);`;
 };
 
 /*
@@ -14,7 +18,17 @@ Returns a SQL query string that will create the GoldMedal table with ten columns
 */
 
 const createGoldMedalTable = () => {
-  return;
+  return `CREATE TABLE GoldMedal (
+    id INTEGER PRIMARY KEY,
+    year INTEGER NOT NULL,
+    city TEXT NOT NULL,
+    season TEXT NOT NULL,
+    name TEXT NOT NULL,
+    country TEXT NOT NULL,
+    gender TEXT NOT NULL,
+    sport TEXT NOT NULL,
+    discipline TEXT NOT NULL,
+    event TEXT NOT NULL);`;
 };
 
 /*
@@ -22,7 +36,9 @@ Returns a SQL query string that will find the number of gold medals for the give
 */
 
 const goldMedalNumber = country => {
-    return;
+  return `SELECT COUNT(*) AS count
+  FROM GoldMedal
+  WHERE GoldMedal.country = '${country}';`;
 };
 
 /*
@@ -31,7 +47,13 @@ won the most summer medals, along with the number of medals aliased to 'count'.
 */
 
 const mostSummerWins = country => {
-  return;
+  return `SELECT year, COUNT(*) as count
+  FROM GoldMedal
+  WHERE GoldMedal.country = '${country}'
+    AND GoldMedal.season = 'Summer'
+  GROUP BY 1
+  ORDER BY 2 DESC
+  LIMIT 1;`;
 };
 
 /*
@@ -40,7 +62,13 @@ won the most winter medals, along with the number of medals aliased to 'count'.
 */
 
 const mostWinterWins = country => {
-  return;
+  return `SELECT year, COUNT(*) as count
+  FROM GoldMedal
+  WHERE GoldMedal.country = '${country}'
+    AND GoldMedal.season = 'Winter'
+  GROUP BY 1
+  ORDER BY 2 DESC
+  LIMIT 1;`;
 };
 
 /*
@@ -49,7 +77,12 @@ won the most medals, along with the number of medals aliased to 'count'.
 */
 
 const bestYear = country => {
-  return;
+  return `SELECT year, COUNT(*) as count
+  FROM GoldMedal
+  WHERE GoldMedal.country = '${country}'
+  GROUP BY 1
+  ORDER BY 2 DESC
+  LIMIT 1;`;
 };
 
 /*
@@ -58,7 +91,12 @@ won the most medals, along with the number of medals aliased to 'count'.
 */
 
 const bestDiscipline = country => {
-  return;
+  return `SELECT discipline, COUNT(*) as count
+  FROM GoldMedal
+  WHERE GoldMedal.country = '${country}'
+  GROUP BY 1
+  ORDER BY 2 DESC
+  LIMIT 1;`;
 };
 
 /*
@@ -67,7 +105,12 @@ won the most medals, along with the number of medals aliased to 'count'.
 */
 
 const bestSport = country => {
-  return;
+  return `SELECT sport, COUNT(*) as count
+  FROM GoldMedal
+  WHERE GoldMedal.country = '${country}'
+  GROUP BY 1
+  ORDER BY 2 DESC
+  LIMIT 1;`;
 };
 
 /*
@@ -76,7 +119,12 @@ won the most medals, along with the number of medals aliased to 'count'.
 */
 
 const bestEvent = country => {
-  return;
+  return `SELECT event, COUNT(*) as count
+  FROM GoldMedal
+  WHERE GoldMedal.country = '${country}'
+  GROUP BY 1
+  ORDER BY 2 DESC
+  LIMIT 1;`;
 };
 
 /*
@@ -84,7 +132,10 @@ Returns a SQL query string that will find the number of male medalists.
 */
 
 const numberMenMedalists = country => {
-  return;
+  return `SELECT COUNT(DISTINCT name) as count
+  FROM GoldMedal
+  WHERE GoldMedal.country = '${country}'
+    AND GoldMedal.gender = 'Men';`;
 };
 
 /*
@@ -92,15 +143,23 @@ Returns a SQL query string that will find the number of female medalists.
 */
 
 const numberWomenMedalists = country => {
-  return;
+  return `SELECT COUNT(DISTINCT name) as count
+  FROM GoldMedal
+  WHERE GoldMedal.country = '${country}'
+    AND GoldMedal.gender = 'Women';`;
 };
 
 /*
 Returns a SQL query string that will find the athlete with the most medals.
 */
-
+// DOES NOT CHECK FOR SAME NAME
 const mostMedaledAthlete = country => {
-  return;
+  return `SELECT name, COUNT(*) as count
+  FROM GoldMedal
+  WHERE GoldMedal.country = '${country}'
+  GROUP BY 1
+  ORDER BY 2 DESC
+  LIMIT 1;`;
 };
 
 /*
@@ -109,7 +168,14 @@ optionally ordered by the given field in the specified direction.
 */
 
 const orderedMedals = (country, field, sortAscending) => {
-  return;
+  let sql = `SELECT * FROM GoldMedal
+              WHERE GoldMedal.country = '${country}'`;
+  if (field) {
+    const dir = sortAscending ? "ASC" : "DESC";
+    sql += ` ORDER BY ${field} ${dir}`;
+  }
+
+  return sql;
 };
 
 /*
@@ -120,7 +186,15 @@ aliased as 'percent'. Optionally ordered by the given field in the specified dir
 */
 
 const orderedSports = (country, field, sortAscending) => {
-  return;
+  let orderingString = "";
+  if (field) {
+    if (sortAscending) {
+      orderingString = `ORDER BY ${field} ASC`;
+    } else {
+      orderingString = `ORDER BY ${field} DESC`;
+    }
+  }
+  return `SELECT sport, COUNT(sport) AS count, (COUNT(sport) * 100 / (select COUNT(*) FROM GoldMedal WHERE country = '${country}')) AS percent FROM GoldMedal WHERE country = '${country}' GROUP BY sport ${orderingString};`;
 };
 
 module.exports = {
