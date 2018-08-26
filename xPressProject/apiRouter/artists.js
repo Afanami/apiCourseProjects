@@ -25,7 +25,47 @@ artistsRouter.get("/", (req, res, next) => {
   );
 });
 
-// app.post("/", (req, res, next) => {});
+artistsRouter.post("/", (req, res, next) => {
+  const name = req.body.artist.name;
+  const dateOfBirth = req.body.artist.dateOfBirth;
+  const biography = req.body.artist.biography;
+
+  if (!name || !dateOfBirth || !biography) {
+    res.sendStatus(400);
+  }
+
+  const isCurrentlyEmployed = req.body.artist.isCurrentlyEmployed;
+  isCurrentlyEmployed ? isCurrentlyEmployed : isCurrentlyEmployed === 1;
+
+  console.log(
+    `Name is ${name}, \nDOB is ${dateOfBirth}, \nBiography is ${biography}, \nEmployment Status is ${isCurrentlyEmployed}`
+  );
+
+  db.run(
+    "INSERT INTO Artist (name, date_of_birth, biography, is_currently_employed) VALUES ($name, $dob, $bio, $employed)",
+    {
+      $name: name,
+      $dob: dateOfBirth,
+      $bio: biography,
+      $employed: isCurrentlyEmployed
+    },
+    function(err) {
+      if (err) {
+        next(err);
+      } else {
+        db.get(
+          "SELECT * FROM Artist WHERE Artist.id = $lastId",
+          {
+            $lastId: this.lastID
+          },
+          function(err, artist) {
+            res.status(201).json({ artist });
+          }
+        );
+      }
+    }
+  );
+});
 
 /* ============================= */
 /* @ROUTE /api/artists/:artistId */
