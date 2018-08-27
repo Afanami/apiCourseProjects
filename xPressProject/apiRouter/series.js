@@ -125,6 +125,10 @@ seriesRouter.put("/:seriesId", (req, res, next) => {
   );
 });
 
+// seriesRouter.delete("/:seriesId", (req, res, next) => {
+//   next();
+// });
+
 // // Delete series from database
 // seriesRouter.delete("/:seriesId", (req, res, next) => {
 //   // Set employed to 0 to series based on id
@@ -151,5 +155,8 @@ seriesRouter.put("/:seriesId", (req, res, next) => {
 //     }
 //   );
 // });
+
+const issuesRouter = require("./issues");
+seriesRouter.use("/:seriesId/issues", issuesRouter);
 
 module.exports = seriesRouter;

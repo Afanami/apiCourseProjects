@@ -28,13 +28,6 @@ app.use(errorhandlder());
 // Mount router @ROUTE '/api'
 app.use("/api", apiRouter);
 
-// app.get("/api/series", (res, req, next) => {});
-// app.post("/api/series", (res, req, next) => {});
-
-// app.get("/api/series/:seriesId", (res, req, next) => {});
-// app.put("/api/series/:seriesId", (res, req, next) => {});
-// app.delete("/api/series/:seriesId", (res, req, next) => {});
-
 // Start server and listen at PORT specified
 app.listen(PORT, () => {
   console.log(`Listening on server port ${PORT}`);
