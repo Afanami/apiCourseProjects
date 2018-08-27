@@ -12,6 +12,7 @@ const db = new sqlite3.Database(
 /* @ROUTE /api/artists/ */
 /* ==================== */
 
+// Query database and get all employed artists
 artistsRouter.get("/", (req, res, next) => {
   db.all(
     "SELECT * FROM Artist WHERE Artist.is_currently_employed = 1",
@@ -25,17 +26,22 @@ artistsRouter.get("/", (req, res, next) => {
   );
 });
 
+// Create artist and insert into database
 artistsRouter.post("/", (req, res, next) => {
   const name = req.body.artist.name;
   const dateOfBirth = req.body.artist.dateOfBirth;
   const biography = req.body.artist.biography;
 
+  // Send 400 error if required body values missing
   if (!name || !dateOfBirth || !biography) {
     res.sendStatus(400);
   }
 
-  const isCurrentlyEmployed = req.body.artist.isCurrentlyEmployed;
-  isCurrentlyEmployed ? isCurrentlyEmployed : isCurrentlyEmployed === 1;
+  let isCurrentlyEmployed = req.body.artist.isCurrentlyEmployed;
+  // Set employment status if does not exist
+  if (!isCurrentlyEmployed) {
+    isCurrentlyEmployed = 1;
+  }
 
   console.log(
     `Name is ${name}, \nDOB is ${dateOfBirth}, \nBiography is ${biography}, \nEmployment Status is ${isCurrentlyEmployed}`
@@ -53,6 +59,7 @@ artistsRouter.post("/", (req, res, next) => {
       if (err) {
         next(err);
       } else {
+        // Check artist inserted correctly
         db.get(
           "SELECT * FROM Artist WHERE Artist.id = $lastId",
           {
@@ -71,6 +78,7 @@ artistsRouter.post("/", (req, res, next) => {
 /* @ROUTE /api/artists/:artistId */
 /* ============================= */
 
+// Set up param router to handle parameter
 artistsRouter.param("artistId", (req, res, next, artistId) => {
   db.get(
     "SELECT * FROM Artist WHERE Artist.id = $artistId",
@@ -78,6 +86,7 @@ artistsRouter.param("artistId", (req, res, next, artistId) => {
       $artistId: artistId
     },
     (err, artist) => {
+      // Error checking logic and assignment of artist to req if exists
       if (err) {
         next(err);
       } else if (artist) {
@@ -90,6 +99,7 @@ artistsRouter.param("artistId", (req, res, next, artistId) => {
   );
 });
 
+// Retrieve artist after param route checks validity of artist
 artistsRouter.get("/:artistId", (req, res, next) => {
   res.status(200).json({ artist: req.artist });
 });
