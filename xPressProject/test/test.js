@@ -791,7 +791,7 @@ describe("PUT /api/series/:id", function() {
   });
 });
 
-xdescribe("DELETE /api/series/:id", function() {
+describe("DELETE /api/series/:id", function() {
   beforeEach(function(done) {
     seed.seedSeriesDatabase(done);
   });

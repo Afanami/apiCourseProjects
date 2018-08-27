@@ -125,36 +125,50 @@ seriesRouter.put("/:seriesId", (req, res, next) => {
   );
 });
 
-// seriesRouter.delete("/:seriesId", (req, res, next) => {
-//   next();
-// });
+// Delete series from database
+seriesRouter.delete("/:seriesId", (req, res, next) => {
+  const seriesId = req.params.seriesId;
 
-// // Delete series from database
-// seriesRouter.delete("/:seriesId", (req, res, next) => {
-//   // Set employed to 0 to series based on id
-//   db.run(
-//     "UPDATE Artist SET is_currently_employed = 0 WHERE Artist.id = $artistId",
-//     {
-//       $artistId: req.params.artistId
-//     },
-//     err => {
-//       if (err) {
-//         next(err);
-//       } else {
-//         // Get updated artist and send as json
-//         db.get(
-//           "SELECT * FROM Artist WHERE Artist.id = $artistId",
-//           {
-//             $artistId: req.params.artistId
-//           },
-//           (err, artist) => {
-//             res.status(200).json({ artist });
-//           }
-//         );
-//       }
-//     }
-//   );
-// });
+  // Get series to check exists
+  db.get(
+    `SELECT * FROM Series WHERE Series.id = ${seriesId}`,
+    (err, series) => {
+      // Error checking logic and checking if exists
+      if (err) {
+        next(err);
+      } else if (series) {
+        // If exists check to see if any issues attached to series
+        db.get(
+          `SELECT * FROM Issue WHERE Issue.series_id = ${seriesId}`,
+          (err, issue) => {
+            // Error checking logic and check if issue exists on series
+            if (err) {
+              next(err);
+            } else if (issue) {
+              // Cant delete if issue exists
+              res.sendStatus(400);
+            } else {
+              // Delete series if no issue exists
+              db.run(
+                `DELETE FROM Series WHERE Series.id = ${seriesId}`,
+                err => {
+                  if (err) {
+                    next(err);
+                  }
+                  // Send proper response code
+                  res.sendStatus(204);
+                }
+              );
+            }
+          }
+        );
+      } else {
+        // Series doesn't exist
+        res.sendStatus(404);
+      }
+    }
+  );
+});
 
 const issuesRouter = require("./issues");
 seriesRouter.use("/:seriesId/issues", issuesRouter);
