@@ -13,7 +13,7 @@ const validateMenu = (req, res, next) => {
   const menuId = req.params.menuId;
   // Check Menu exists
   db.get(
-    `SELECT * FROM Menu WHERE Menu.id = $menuId`,
+    "SELECT * FROM Menu WHERE Menu.id = $menuId",
     { $menuId: menuId },
     (err, menu) => {
       if (err) {
@@ -50,19 +50,21 @@ menuItemsRouter.get("/", validateMenu, (req, res, next) => {
 
 // Post a menu item to a menu
 menuItemsRouter.post("/", validateMenu, (req, res, next) => {
+  console.log(req);
   const name = req.body.menuItem.name;
   const description = req.body.menuItem.description; // Not required
   const inventory = req.body.menuItem.inventory;
   const price = req.body.menuItem.price;
   const menuId = req.params.menuId;
+  const menuTitle = req.menu.title;
 
   // Send 400 error if required body values missing
-  if (!name || !inventory || !price || !menuId) {
+  if (!name || !inventory || !price || !menuId || !menuTitle) {
     res.sendStatus(400);
   }
 
   db.run(
-    `INSERT INTO MenuItem (name, description, inventory, price, menu_id) VALUES ($name, $desc, $inventory, $price, $menuId)`,
+    "INSERT INTO MenuItem (name, description, inventory, price, menu_id) VALUES ($name, $desc, $inventory, $price, $menuId)",
     {
       $name: name,
       $desc: description,
