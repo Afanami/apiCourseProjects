@@ -8,6 +8,8 @@ const db = new sqlite3.Database(
   process.env.TEST_DATABASE || "./database.sqlite"
 );
 
+const employeeParamCheck = require("./employeeParamCheck");
+
 /* ====================== */
 /* @ROUTE /api/employees/ */
 /* ====================== */
@@ -82,25 +84,7 @@ employeeRouter.post("/", (req, res, next) => {
 /* ================================= */
 
 // Set up param router to handle parameter error checking logic + existence check
-employeeRouter.param("employeeId", (req, res, next, employeeId) => {
-  db.get(
-    "SELECT * FROM Employee WHERE Employee.id = $employeeId",
-    {
-      $employeeId: employeeId
-    },
-    (err, employee) => {
-      // Error checking logic and assignment of employee to req if exists
-      if (err) {
-        next(err);
-      } else if (employee) {
-        req.employee = employee;
-        next();
-      } else {
-        res.sendStatus(404);
-      }
-    }
-  );
-});
+employeeRouter.param("employeeId", employeeParamCheck);
 
 // Retrieve employee after param route checks validity of employee
 employeeRouter.get("/:employeeId", (req, res, next) => {
