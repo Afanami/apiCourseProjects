@@ -8,6 +8,6 @@ const menuRouter = require("./menu");
 // Mount routes to /api
 // @ROUTES /api/employees & /api/menu
 apiRouter.use("/employees", employeesRouter);
-apiRouter.use("/menu", menuRouter);
+apiRouter.use("/menus", menuRouter);
 
 module.exports = apiRouter;

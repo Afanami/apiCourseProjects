@@ -8,17 +8,33 @@ const db = new sqlite3.Database(
   process.env.TEST_DATABASE || "./database.sqlite"
 );
 
-const employeeParamCheck = require("./employeeParamCheck");
-
+// Employee exists middleware
+const validateEmployee = (req, res, next) => {
+  const employeeId = req.params.employeeId;
+  // Check Employee exists
+  db.get(
+    `SELECT * FROM Employee WHERE Employee.id = ${employeeId}`,
+    (err, employee) => {
+      if (err) {
+        next(err);
+      } else if (employee) {
+        req.employee = employee;
+        next();
+      } else {
+        res.sendStatus(404);
+      }
+    }
+  );
+};
 /* ============================================= */
 /* @ROUTE /api/employees/:employeeId/timesheets/ */
 /* ============================================= */
 
-// Get all issues with corresponding series id
-timesheetsRouter.get("/", (req, res, next) => {
+// Get all timesheets with corresponding employee id
+timesheetsRouter.get("/", validateEmployee, (req, res, next) => {
+  const employeeId = req.params.employeeId;
   db.all(
-    "SELECT * FROM Timesheet WHERE Timesheet.employee_id = $employeeId",
-    { $employeeId: req.params.employeeId },
+    `SELECT * FROM Timesheet WHERE Timesheet.employee_id = ${employeeId}`,
     (err, timesheets) => {
       if (err) {
         next(err);
@@ -30,14 +46,14 @@ timesheetsRouter.get("/", (req, res, next) => {
 });
 
 // Post a timesheet to an employee
-timesheetsRouter.post("/", employeeParamCheck, (req, res, next) => {
+timesheetsRouter.post("/", validateEmployee, (req, res, next) => {
   const hours = req.body.timesheet.hours;
   const rate = req.body.timesheet.rate;
   const date = req.body.timesheet.date;
   const employeeId = req.params.employeeId;
 
   // Send 400 error if required body values missing
-  if (!hours || !rate || !date) {
+  if (!hours || !rate || !date || !employeeId) {
     res.sendStatus(400);
   }
 
@@ -47,7 +63,7 @@ timesheetsRouter.post("/", employeeParamCheck, (req, res, next) => {
       if (err) {
         next(err);
       } else {
-        // Get issue
+        // Get timesheet
         db.get(
           "SELECT * FROM Timesheet WHERE Timesheet.id = $lastId",
           {
@@ -67,35 +83,25 @@ timesheetsRouter.post("/", employeeParamCheck, (req, res, next) => {
 /* ========================================================= */
 
 // Set up param router to handle parameter
-timesheetsRouter.param(
-  "timesheetId",
-  employeeParamCheck,
-  (req, res, next, timesheetId) => {
-    db.get(
-      `SELECT * FROM Timesheet WHERE Timesheet.id = ${timesheetId}`,
-      (err, timesheet) => {
-        // Error checking logic and assignment of timesheet to req if exists
-        if (err) {
-          next(err);
-        } else if (timesheet) {
-          req.timesheet = timesheet;
-          next();
-        } else {
-          res.sendStatus(404);
-        }
+timesheetsRouter.param("timesheetId", (req, res, next, timesheetId) => {
+  db.get(
+    `SELECT * FROM Timesheet WHERE Timesheet.id = ${timesheetId}`,
+    (err, timesheet) => {
+      // Error checking logic and assignment of timesheet to req if exists
+      if (err) {
+        next(err);
+      } else if (timesheet) {
+        req.timesheet = timesheet;
+        next();
+      } else {
+        res.sendStatus(404);
       }
-    );
-  }
-);
+    }
+  );
+});
 
-// Post a timesheet to an employee
-timesheetsRouter.put("/:timesheetId", (req, res, next) => {
-  // console.log(
-  //   "I am body = " +
-  //     JSON.stringify(req.body) +
-  //     "\nI am params = " +
-  //     JSON.stringify(req.params)
-  // );
+// Update a timesheet of an employee
+timesheetsRouter.put("/:timesheetId", validateEmployee, (req, res, next) => {
   const hours = req.body.timesheet.hours;
   const rate = req.body.timesheet.rate;
   const date = req.body.timesheet.date;
@@ -103,7 +109,7 @@ timesheetsRouter.put("/:timesheetId", (req, res, next) => {
   const timesheetId = req.params.timesheetId;
 
   // Send 400 error if required body values missing
-  if (!hours || !rate || !date) {
+  if (!hours || !rate || !date || !employeeId) {
     res.sendStatus(400);
   }
 
@@ -127,7 +133,7 @@ timesheetsRouter.put("/:timesheetId", (req, res, next) => {
 });
 
 // Delete timesheet
-timesheetsRouter.delete("/:timesheetId", (req, res, next) => {
+timesheetsRouter.delete("/:timesheetId", validateEmployee, (req, res, next) => {
   const timesheetId = req.params.timesheetId;
 
   db.run(`DELETE FROM Timesheet WHERE Timesheet.id = ${timesheetId}`, err => {
