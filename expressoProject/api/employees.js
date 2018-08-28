@@ -20,7 +20,6 @@ employeeRouter.get("/", (req, res, next) => {
       if (err) {
         next(err);
       } else {
-        // console.log(employees);
         res.status(200).json({ employees });
       }
     }
@@ -29,7 +28,6 @@ employeeRouter.get("/", (req, res, next) => {
 
 // Create employee and insert into database
 employeeRouter.post("/", (req, res, next) => {
-  // console.log(req.body);
   const name = req.body.employee.name;
   const position = req.body.employee.position;
   const wage = req.body.employee.wage;
@@ -45,10 +43,6 @@ employeeRouter.post("/", (req, res, next) => {
     isCurrentlyEmployed = 1;
   }
 
-  // console.log(
-  //   `Name is ${name}, \Position is ${position}, \Wage is ${wage}, \nEmployment Status is ${isCurrentlyEmployed}`
-  // );
-
   db.run(
     "INSERT INTO Employee (name, position, wage, is_current_employee) VALUES ($name, $pos, $wage, $employed)",
     {
@@ -61,14 +55,13 @@ employeeRouter.post("/", (req, res, next) => {
       if (err) {
         next(err);
       } else {
-        // Check employee inserted correctly
+        // Check employee inserted correctly and return as response
         db.get(
           "SELECT * FROM Employee WHERE Employee.id = $lastId",
           {
             $lastId: this.lastID
           },
           function(err, employee) {
-            // console.log(employee);
             res.status(201).json({ employee });
           }
         );
@@ -84,7 +77,8 @@ employeeRouter.post("/", (req, res, next) => {
 // Set up param router to handle parameter error checking logic + existence check
 employeeRouter.param("employeeId", (req, res, next, employeeId) => {
   db.get(
-    `SELECT * FROM Employee WHERE Employee.id = ${employeeId}`,
+    "SELECT * FROM Employee WHERE Employee.id = $employeeId",
+    { $employeeId: employeeId },
     (err, employee) => {
       // Error checking logic and assignment of employee to req if exists
       if (err) {
@@ -102,16 +96,15 @@ employeeRouter.param("employeeId", (req, res, next, employeeId) => {
 // Retrieve employee after param route checks validity of employee
 employeeRouter.get("/:employeeId", (req, res, next) => {
   const employee = req.employee;
-  // console.log(employee);
   res.status(200).json({ employee });
 });
 
 // Update employee after param route checks validity of employee
 employeeRouter.put("/:employeeId", (req, res, next) => {
-  // console.log(req);
   const name = req.body.employee.name;
   const position = req.body.employee.position;
   const wage = req.body.employee.wage;
+  const employeeId = req.params.employeeId;
 
   // Send 400 error if required body values missing
   if (!name || !position || !wage) {
@@ -124,23 +117,24 @@ employeeRouter.put("/:employeeId", (req, res, next) => {
     isCurrentlyEmployed = 1;
   }
 
-  const employeeId = req.params.employeeId;
   // Update employee based on id
   db.run(
-    `UPDATE Employee SET name = $name, position = $pos, wage = $wage, is_current_employee = $employed WHERE Employee.id = ${employeeId}`,
+    "UPDATE Employee SET name = $name, position = $pos, wage = $wage, is_current_employee = $employed WHERE Employee.id = $employeeId",
     {
       $name: name,
       $pos: position,
       $wage: wage,
-      $employed: isCurrentlyEmployed
+      $employed: isCurrentlyEmployed,
+      $employeeId: employeeId
     },
     err => {
       if (err) {
         next(err);
       } else {
-        // Get updated employee and send as json
+        // Get updated employee and return as json response
         db.get(
-          `SELECT * FROM Employee WHERE Employee.id = ${employeeId}`,
+          "SELECT * FROM Employee WHERE Employee.id = $employeeId",
+          { $employeeId: employeeId },
           (err, employee) => {
             res.status(200).json({ employee });
           }
@@ -155,14 +149,16 @@ employeeRouter.delete("/:employeeId", (req, res, next) => {
   const employeeId = req.params.employeeId;
   // Set employed to 0 to employee based on id
   db.run(
-    `UPDATE Employee SET is_current_employee = 0 WHERE Employee.id = ${employeeId}`,
+    "UPDATE Employee SET is_current_employee = 0 WHERE Employee.id = $employeeId",
+    { $employeeId: employeeId },
     err => {
       if (err) {
         next(err);
       } else {
-        // Get updated employee and send as json
+        // Get updated employee and send as json response
         db.get(
-          `SELECT * FROM Employee WHERE Employee.id = ${employeeId}`,
+          "SELECT * FROM Employee WHERE Employee.id = $employeeId",
+          { $employeeId: employeeId },
           (err, employee) => {
             res.status(200).json({ employee });
           }
