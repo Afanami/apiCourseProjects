@@ -31,18 +31,15 @@ artistsRouter.post("/", (req, res, next) => {
   const name = req.body.artist.name;
   const dateOfBirth = req.body.artist.dateOfBirth;
   const biography = req.body.artist.biography;
-
   // Send 400 error if required body values missing
   if (!name || !dateOfBirth || !biography) {
     res.sendStatus(400);
   }
-
   let isCurrentlyEmployed = req.body.artist.isCurrentlyEmployed;
   // Set employment status if does not exist
   if (!isCurrentlyEmployed) {
     isCurrentlyEmployed = 1;
   }
-
   // console.log(
   //   `Name is ${name}, \nDOB is ${dateOfBirth}, \nBiography is ${biography}, \nEmployment Status is ${isCurrentlyEmployed}`
   // );
