@@ -1,7 +1,7 @@
-import React, { Component } from 'react';
+import React, { Component } from "react";
 import { withRouter } from "react-router-dom";
 
-import Expresso from '../utils/Expresso';
+import Expresso from "../utils/Expresso";
 
 class Menu extends Component {
   constructor(props) {
@@ -27,9 +27,9 @@ class Menu extends Component {
   }
 
   componentDidMount() {
-    if (this.props.match.params.id === 'new') {
+    if (this.props.match.params.id === "new") {
       const newMenu = {
-        title: ''
+        title: ""
       };
 
       this.setState({
@@ -96,10 +96,12 @@ class Menu extends Component {
       return false;
     }
 
-    if (menuItem.name === savedMenuItem.name &&
-        menuItem.description === savedMenuItem.description &&
-        menuItem.inventory === savedMenuItem.inventory &&
-        menuItem.price === savedMenuItem.price) {
+    if (
+      menuItem.name === savedMenuItem.name &&
+      menuItem.description === savedMenuItem.description &&
+      menuItem.inventory === savedMenuItem.inventory &&
+      menuItem.price === savedMenuItem.price
+    ) {
       return false;
     }
 
@@ -113,31 +115,31 @@ class Menu extends Component {
   updateMenuTitle(event) {
     const menu = JSON.parse(JSON.stringify(this.state.menu));
     menu.title = event.target.value;
-    this.setState({menu: menu});
+    this.setState({ menu: menu });
   }
 
   updateMenuItemName(event, menuItemIndex) {
     const menuItems = JSON.parse(JSON.stringify(this.state.menuItems));
     menuItems[menuItemIndex].name = event.target.value;
-    this.setState({menuItems: menuItems});
+    this.setState({ menuItems: menuItems });
   }
 
   updateMenuItemPrice(event, menuItemIndex) {
     const menuItems = JSON.parse(JSON.stringify(this.state.menuItems));
     menuItems[menuItemIndex].price = event.target.value;
-    this.setState({menuItems: menuItems});
+    this.setState({ menuItems: menuItems });
   }
 
   updateMenuItemInventory(event, menuItemIndex) {
     const menuItems = JSON.parse(JSON.stringify(this.state.menuItems));
     menuItems[menuItemIndex].inventory = event.target.value;
-    this.setState({menuItems: menuItems});
+    this.setState({ menuItems: menuItems });
   }
 
   updateMenuItemDescription(event, menuItemIndex) {
     const menuItems = JSON.parse(JSON.stringify(this.state.menuItems));
     menuItems[menuItemIndex].description = event.target.value;
-    this.setState({menuItems: menuItems});
+    this.setState({ menuItems: menuItems });
   }
 
   saveMenu() {
@@ -175,54 +177,64 @@ class Menu extends Component {
   deleteMenu() {
     if (this.state.menu.id) {
       Expresso.deleteMenu(this.state.menu.id).then(() => {
-        this.props.history.push('/');
+        this.props.history.push("/");
       });
     } else {
-      this.props.history.push('/');
+      this.props.history.push("/");
     }
   }
 
   addMenuItem() {
-    const newMenuItem = {
-      name: '',
-      description: '',
-      inventory: 0,
-      price: 0
-    };
+    if (this.state.menu.title !== "" || this.state.menu.title !== null) {
+      const newMenuItem = {
+        name: "",
+        description: "",
+        inventory: 0,
+        price: 0
+      };
 
-    const menuItems = JSON.parse(JSON.stringify(this.state.menuItems));
-    menuItems.push(newMenuItem);
-    this.setState({menuItems: menuItems});
+      const menuItems = JSON.parse(JSON.stringify(this.state.menuItems));
+      menuItems.push(newMenuItem);
+      this.setState({ menuItems: menuItems });
+    }
   }
 
   saveMenuItem(menuItemIndex) {
     if (this.state.menuItems[menuItemIndex].id) {
-      Expresso.updateMenuItem(this.state.menuItems[menuItemIndex], this.state.menu.id)
-        .then(menuItem => {
-          let menuItems = JSON.parse(JSON.stringify(this.state.menuItems));
-          menuItems.splice(menuItemIndex, 1, menuItem);
-          let savedMenuItems = JSON.parse(JSON.stringify(this.state.savedMenuItems));
-          savedMenuItems.splice(menuItemIndex, 1, menuItem);
-          menuItems = this.sortMenuItems(menuItems);
-          savedMenuItems = this.sortMenuItems(savedMenuItems);
-          this.setState({
-            menuItems: menuItems,
-            savedMenuItems: JSON.parse(JSON.stringify(menuItems))
-          });
+      Expresso.updateMenuItem(
+        this.state.menuItems[menuItemIndex],
+        this.state.menu.id
+      ).then(menuItem => {
+        let menuItems = JSON.parse(JSON.stringify(this.state.menuItems));
+        menuItems.splice(menuItemIndex, 1, menuItem);
+        let savedMenuItems = JSON.parse(
+          JSON.stringify(this.state.savedMenuItems)
+        );
+        savedMenuItems.splice(menuItemIndex, 1, menuItem);
+        menuItems = this.sortMenuItems(menuItems);
+        savedMenuItems = this.sortMenuItems(savedMenuItems);
+        this.setState({
+          menuItems: menuItems,
+          savedMenuItems: JSON.parse(JSON.stringify(menuItems))
         });
+      });
     } else {
-      Expresso.createMenuItem(this.state.menuItems[menuItemIndex], this.state.menu.id)
-        .then(menuItem => {
-          let menuItems = JSON.parse(JSON.stringify(this.state.menuItems));
-          menuItems.splice(menuItemIndex, 1, menuItem);
-          let savedMenuItems = JSON.parse(JSON.stringify(this.state.savedMenuItems));
-          savedMenuItems.splice(menuItemIndex, 1, menuItem);
-          menuItems = this.sortMenuItems(menuItems);
-          savedMenuItems = this.sortMenuItems(savedMenuItems);
-          this.setState({
-            menuItems: menuItems,
-            savedMenuItems: savedMenuItems
-          });
+      Expresso.createMenuItem(
+        this.state.menuItems[menuItemIndex],
+        this.state.menu.id
+      ).then(menuItem => {
+        let menuItems = JSON.parse(JSON.stringify(this.state.menuItems));
+        menuItems.splice(menuItemIndex, 1, menuItem);
+        let savedMenuItems = JSON.parse(
+          JSON.stringify(this.state.savedMenuItems)
+        );
+        savedMenuItems.splice(menuItemIndex, 1, menuItem);
+        menuItems = this.sortMenuItems(menuItems);
+        savedMenuItems = this.sortMenuItems(savedMenuItems);
+        this.setState({
+          menuItems: menuItems,
+          savedMenuItems: savedMenuItems
+        });
       });
     }
   }
@@ -233,7 +245,9 @@ class Menu extends Component {
     if (!menuItem.id) {
       this.deleteMenuItem(menuItem, menuItemIndex);
     } else {
-      menuItems[menuItemIndex] = JSON.parse(JSON.stringify(this.state.savedMenuItems[menuItemIndex]));
+      menuItems[menuItemIndex] = JSON.parse(
+        JSON.stringify(this.state.savedMenuItems[menuItemIndex])
+      );
       this.setState({
         menuItems: menuItems
       });
@@ -244,7 +258,9 @@ class Menu extends Component {
     Expresso.deleteMenuItem(menuItem.id, this.state.menu.id).then(() => {
       const menuItems = JSON.parse(JSON.stringify(this.state.menuItems));
       menuItems.splice(menuItemIndex, 1);
-      const savedMenuItems = JSON.parse(JSON.stringify(this.state.savedMenuItems));
+      const savedMenuItems = JSON.parse(
+        JSON.stringify(this.state.savedMenuItems)
+      );
       savedMenuItems.splice(menuItemIndex, 1);
       this.setState({
         menuItems: menuItems,
@@ -258,21 +274,33 @@ class Menu extends Component {
     let saveButton, cancelButton, deleteButton;
 
     if (this.menuHasChanges() && this.menuHasAllRequiredFields()) {
-      saveButton =<a className={'button'} onClick={this.saveMenu}>Save</a>;
+      saveButton = (
+        <a className={"button"} onClick={this.saveMenu}>
+          Save
+        </a>
+      );
     } else {
-      saveButton = <a className='button inactive'>Save</a>;
+      saveButton = <a className="button inactive">Save</a>;
     }
 
     if (this.menuHasChanges()) {
-      cancelButton =<a className={'button'} onClick={this.cancelMenuEdit}>Cancel</a>
+      cancelButton = (
+        <a className={"button"} onClick={this.cancelMenuEdit}>
+          Cancel
+        </a>
+      );
     } else {
-      cancelButton = <a className='button inactive'>Cancel</a>;
+      cancelButton = <a className="button inactive">Cancel</a>;
     }
 
     if (!this.state.menuItems.length) {
-      deleteButton = <a className='button delete' onClick={this.deleteMenu}>Delete</a>;
+      deleteButton = (
+        <a className="button delete" onClick={this.deleteMenu}>
+          Delete
+        </a>
+      );
     } else {
-      deleteButton = '';
+      deleteButton = "";
     }
 
     return (
@@ -281,25 +309,49 @@ class Menu extends Component {
         {cancelButton}
         {deleteButton}
       </div>
-    )
+    );
   }
 
   renderMenuItemButtons(menuItem, menuItemIndex) {
     let saveButton, cancelButton, deleteButton;
 
-    if (this.menuItemHasChanges(menuItem, menuItemIndex) && this.menuItemHasAllRequiredFields(menuItem)) {
-      saveButton =<a className={'button'} onClick={this.saveMenuItem.bind(this, menuItemIndex)}>Save</a>;
+    if (
+      this.menuItemHasChanges(menuItem, menuItemIndex) &&
+      this.menuItemHasAllRequiredFields(menuItem)
+    ) {
+      saveButton = (
+        <a
+          className={"button"}
+          onClick={this.saveMenuItem.bind(this, menuItemIndex)}
+        >
+          Save
+        </a>
+      );
     } else {
-      saveButton = <a className='button inactive'>Save</a>;
+      saveButton = <a className="button inactive">Save</a>;
     }
 
     if (this.menuItemHasChanges(menuItem, menuItemIndex)) {
-      cancelButton =<a className={'button'} onClick={this.cancelMenuItemEdit.bind(this, menuItemIndex)}>Cancel</a>
+      cancelButton = (
+        <a
+          className={"button"}
+          onClick={this.cancelMenuItemEdit.bind(this, menuItemIndex)}
+        >
+          Cancel
+        </a>
+      );
     } else {
-      cancelButton = <a className='button inactive'>Cancel</a>;
+      cancelButton = <a className="button inactive">Cancel</a>;
     }
 
-    deleteButton = <a className='button delete' onClick={this.deleteMenuItem.bind(this, menuItem, menuItemIndex)}>Delete</a>;
+    deleteButton = (
+      <a
+        className="button delete"
+        onClick={this.deleteMenuItem.bind(this, menuItem, menuItemIndex)}
+      >
+        Delete
+      </a>
+    );
 
     return (
       <div className="buttons">
@@ -307,21 +359,45 @@ class Menu extends Component {
         {cancelButton}
         {deleteButton}
       </div>
-    )
+    );
   }
 
   renderMenuItems() {
-    if (this.props.match.params.id === 'new') {
-      return '';
+    if (this.props.match.params.id === "new") {
+      return "";
     }
     const menuItems = this.state.menuItems.map((menuItem, menuItemIndex) => {
       return (
         <div className="row" key={menuItem.id}>
-          <div className="item"><input onChange={(e) => this.updateMenuItemName(e, menuItemIndex)} value={menuItem.name}/></div>
-          <div className="item"><input type="number" onChange={(e) => this.updateMenuItemPrice(e, menuItemIndex)} value={menuItem.price} /></div>
-          <div className="item"><input type="number" onChange={(e) => this.updateMenuItemInventory(e, menuItemIndex)} value={menuItem.inventory} /></div>
-          <div className="item"><textarea onChange={(e) => this.updateMenuItemDescription(e, menuItemIndex)} value={menuItem.description} /></div>
-          <div className="item">{this.renderMenuItemButtons(menuItem, menuItemIndex)}</div>
+          <div className="item">
+            <input
+              onChange={e => this.updateMenuItemName(e, menuItemIndex)}
+              value={menuItem.name}
+            />
+          </div>
+          <div className="item">
+            <input
+              type="number"
+              onChange={e => this.updateMenuItemPrice(e, menuItemIndex)}
+              value={menuItem.price}
+            />
+          </div>
+          <div className="item">
+            <input
+              type="number"
+              onChange={e => this.updateMenuItemInventory(e, menuItemIndex)}
+              value={menuItem.inventory}
+            />
+          </div>
+          <div className="item">
+            <textarea
+              onChange={e => this.updateMenuItemDescription(e, menuItemIndex)}
+              value={menuItem.description}
+            />
+          </div>
+          <div className="item">
+            {this.renderMenuItemButtons(menuItem, menuItemIndex)}
+          </div>
         </div>
       );
     });
@@ -333,7 +409,7 @@ class Menu extends Component {
           <div className="item">Price</div>
           <div className="item">Inventory</div>
           <div className="item">Description</div>
-          <div className="item"></div>
+          <div className="item" />
         </div>
         {menuItems}
       </div>
@@ -342,17 +418,23 @@ class Menu extends Component {
 
   render() {
     if (!this.state.menu) {
-      return <div className="Menu"></div>
+      return <div className="Menu" />;
     }
     const menu = this.state.menu;
     return (
       <div className="Menu">
         <div className="title">
-          <input onChange={this.updateMenuTitle} value={menu.title} placeholder="Menu Title" />
+          <input
+            onChange={this.updateMenuTitle}
+            value={menu.title}
+            placeholder="Menu Title"
+          />
           {this.renderMenuButtons()}
         </div>
         {this.renderMenuItems()}
-        <a className="button add" onClick={this.addMenuItem}>Add Menu Item</a>
+        <a className="button add" onClick={this.addMenuItem}>
+          Add Menu Item
+        </a>
       </div>
     );
   }
